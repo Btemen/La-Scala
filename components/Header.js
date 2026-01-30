@@ -21,16 +21,38 @@ export default function Header() {
         </Link>
         <div className="flex items-center gap-9">
           <ul className="flex gap-9">
-            {['Collections', 'Houses', 'Pre-Owned', 'Journal'].map((item) => (
-              <li key={item}>
-                <Link 
-                  href="#" 
-                  className="text-[11px] font-normal tracking-[1.5px] uppercase text-charcoal hover:opacity-60 transition-opacity"
-                >
-                  {item}
-                </Link>
-              </li>
-            ))}
+            <li>
+              <Link 
+                href="/collections" 
+                className="text-[11px] font-normal tracking-[1.5px] uppercase text-charcoal hover:opacity-60 transition-opacity"
+              >
+                Collections
+              </Link>
+            </li>
+            <li>
+              <Link 
+                href="/collections" 
+                className="text-[11px] font-normal tracking-[1.5px] uppercase text-charcoal hover:opacity-60 transition-opacity"
+              >
+                Houses
+              </Link>
+            </li>
+            <li>
+              <Link 
+                href="/collections" 
+                className="text-[11px] font-normal tracking-[1.5px] uppercase text-charcoal hover:opacity-60 transition-opacity"
+              >
+                Pre-Owned
+              </Link>
+            </li>
+            <li>
+              <Link 
+                href="#" 
+                className="text-[11px] font-normal tracking-[1.5px] uppercase text-charcoal hover:opacity-60 transition-opacity"
+              >
+                Journal
+              </Link>
+            </li>
           </ul>
           
           {loading ? (
