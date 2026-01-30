@@ -4,6 +4,8 @@ import Link from 'next/link'
 import Header from '@/components/Header'
 import ProductClient from './ProductClient'
 
+export const dynamic = 'force-dynamic'
+
 async function getProduct(sku) {
   const { data: product, error } = await supabase
     .from('products')
