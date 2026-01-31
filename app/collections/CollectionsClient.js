@@ -17,7 +17,6 @@ export default function CollectionsClient({ products, categories }) {
   const [selectedGender, setSelectedGender] = useState(null)
   const [selectedSize, setSelectedSize] = useState(null)
   const [selectedCategory, setSelectedCategory] = useState(null)
-  const [sortBy, setSortBy] = useState('price_asc')
 
   // Filter products
   let filteredProducts = products.filter(product => {
@@ -26,20 +25,9 @@ export default function CollectionsClient({ products, categories }) {
     return true
   })
 
-  // Sort products
+  // Sort by highest price descending
   filteredProducts = [...filteredProducts].sort((a, b) => {
-    switch (sortBy) {
-      case 'price_asc':
-        return (a.current_price || a.retail_price) - (b.current_price || b.retail_price)
-      case 'price_desc':
-        return (b.current_price || b.retail_price) - (a.current_price || a.retail_price)
-      case 'name_asc':
-        return a.name.localeCompare(b.name)
-      case 'newest':
-        return new Date(b.created_at) - new Date(a.created_at)
-      default:
-        return 0
-    }
+    return (b.current_price || b.retail_price) - (a.current_price || a.retail_price)
   })
 
   const clearFilters = () => {
@@ -139,19 +127,9 @@ export default function CollectionsClient({ products, categories }) {
         {/* Products Grid */}
         <div className="flex-1">
           
-          {/* Sort & Count */}
-          <div className="flex justify-between items-center mb-8">
+          {/* Count */}
+          <div className="mb-8">
             <p className="text-sm text-warm-gray">{filteredProducts.length} products</p>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="px-4 py-2 text-sm border border-light-gray bg-white focus:border-charcoal outline-none"
-            >
-              <option value="price_asc">Price: Low to High</option>
-              <option value="price_desc">Price: High to Low</option>
-              <option value="name_asc">Name: A to Z</option>
-              <option value="newest">Newest First</option>
-            </select>
           </div>
 
           {/* Grid */}
