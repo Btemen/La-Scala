@@ -11,7 +11,6 @@ export default function ProductClient({ product, images, inventoryBySize, listin
 
   const sizes = Object.keys(inventoryBySize)
   
-  // Determine size availability type
   const getSizeType = (size) => {
     const sizeData = inventoryBySize[size]
     const hasRetail = sizeData?.retail
@@ -23,36 +22,29 @@ export default function ProductClient({ product, images, inventoryBySize, listin
     return 'unavailable'
   }
 
-  // Check if size has preowned
   const sizeHasPreowned = (size) => {
     const sizeData = inventoryBySize[size]
     return sizeData?.preowned?.length > 0
   }
 
-  // Get the current inventory source for selected size
   const currentInventory = selectedSize ? inventoryBySize[selectedSize]?.retail : null
 
-  // Scroll to listings and filter
   const scrollToListings = (size) => {
     setSizeFilter(size)
     listingsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
-  // Filter listings
   const filteredListings = sizeFilter === 'all' 
     ? listings 
     : listings.filter(l => l.size === sizeFilter)
 
-  // Get available sizes for filter buttons
   const sizesWithListings = [...new Set(listings.map(l => l.size))]
 
   return (
     <>
-      {/* Main Product Section */}
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-16 max-w-[1600px] mx-auto px-12 py-8">
         {/* Gallery */}
         <div className="flex gap-4 lg:sticky lg:top-28 self-start">
-          {/* Thumbnails */}
           <div className="flex flex-col gap-3">
             {images.map((img, idx) => (
               <button
@@ -71,7 +63,6 @@ export default function ProductClient({ product, images, inventoryBySize, listin
             ))}
           </div>
           
-          {/* Main Image */}
           <div className="flex-1 aspect-[3/4] bg-light-gray overflow-hidden">
             {images[selectedImage] && (
               <img 
@@ -89,6 +80,7 @@ export default function ProductClient({ product, images, inventoryBySize, listin
             {product.brand?.name}
           </Link>
           <h1 className="font-serif text-4xl font-normal mt-3 mb-2">{product.name}</h1>
+          <p className="text-sm text-warm-gray mb-1">{product.materials}</p>
           <p className="text-sm text-warm-gray font-mono mb-6">SKU: {product.sku} · {product.color}</p>
           <p className="text-2xl mb-8">${product.retail_price?.toLocaleString()}</p>
           
@@ -98,7 +90,6 @@ export default function ProductClient({ product, images, inventoryBySize, listin
 
           {/* Purchase Section */}
           <div className="bg-white border border-light-gray p-8 mb-6">
-            {/* Header */}
             <div className="flex justify-between items-center mb-5">
               <div className="flex items-center gap-3">
                 <span className="text-[11px] tracking-[2px] uppercase text-warm-gray">Purchase</span>
@@ -200,7 +191,7 @@ export default function ProductClient({ product, images, inventoryBySize, listin
                     : 'You will be redirected to complete your purchase'}
                   {getSizeType(selectedSize) === 'retail_and_preowned' && inventoryBySize[selectedSize]?.preowned?.length > 0 && (
                     <span className="block mt-2 text-gold cursor-pointer hover:underline" onClick={() => scrollToListings(selectedSize)}>
-                      Also available pre-owned from ${Math.min(...inventoryBySize[selectedSize].preowned.map(l => l.price)).toLocaleString()}
+                      Also available in Private Collections from ${Math.min(...inventoryBySize[selectedSize].preowned.map(l => l.price)).toLocaleString()}
                     </span>
                   )}
                 </p>
@@ -211,28 +202,13 @@ export default function ProductClient({ product, images, inventoryBySize, listin
                   onClick={() => scrollToListings(selectedSize)}
                   className="w-full py-4 bg-gold text-white text-xs tracking-[2px] uppercase hover:bg-gold/90 transition-colors"
                 >
-                  View Pre-Owned in Size {selectedSize}
+                  View Private Collections in Size {selectedSize}
                 </button>
                 <p className="text-[11px] text-warm-gray mt-4 pt-4 border-t border-light-gray">
                   {inventoryBySize[selectedSize]?.preowned?.length} listing{inventoryBySize[selectedSize]?.preowned?.length !== 1 ? 's' : ''} available from our community
                 </p>
               </>
             ) : null}
-          </div>
-
-          {/* Product Details Accordion */}
-          <div className="border-t border-light-gray">
-            <ProductDetail title="Details" defaultOpen>
-              <p className="text-sm text-warm-gray leading-relaxed">
-                • {product.materials}<br/>
-                • Made in {product.origin_country || 'Italy'}
-              </p>
-            </ProductDetail>
-            <ProductDetail title="Care">
-              <p className="text-sm text-warm-gray leading-relaxed">
-                {product.care_instructions || 'Professional dry clean recommended.'}
-              </p>
-            </ProductDetail>
           </div>
         </div>
       </section>
@@ -241,7 +217,7 @@ export default function ProductClient({ product, images, inventoryBySize, listin
       <section ref={listingsRef} className="max-w-[1600px] mx-auto px-12 py-16 border-t border-light-gray">
         <div className="flex justify-between items-end mb-10 flex-wrap gap-6">
           <div>
-            <h2 className="font-serif text-3xl font-normal">Pre-Owned Marketplace</h2>
+            <h2 className="font-serif text-3xl font-normal">Private Collections</h2>
             <p className="text-sm text-warm-gray mt-2">Authenticated listings from our community</p>
           </div>
           <div className="flex items-center gap-4">
@@ -331,26 +307,5 @@ export default function ProductClient({ product, images, inventoryBySize, listin
         )}
       </section>
     </>
-  )
-}
-
-function ProductDetail({ title, children, defaultOpen = false }) {
-  const [isOpen, setIsOpen] = useState(defaultOpen)
-  
-  return (
-    <div className="border-b border-light-gray">
-      <button 
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex justify-between items-center py-5 text-xs tracking-wide uppercase hover:text-warm-gray transition-colors"
-      >
-        {title}
-        <span className={`text-lg transition-transform ${isOpen ? 'rotate-45' : ''}`}>+</span>
-      </button>
-      {isOpen && (
-        <div className="pb-5">
-          {children}
-        </div>
-      )}
-    </div>
   )
 }

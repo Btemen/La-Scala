@@ -16,7 +16,6 @@ export default function SellPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [step, setStep] = useState(1)
   
-  // Form state
   const [size, setSize] = useState('')
   const [condition, setCondition] = useState('')
   const [conditionNotes, setConditionNotes] = useState('')
@@ -26,14 +25,12 @@ export default function SellPage() {
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
 
-  // Redirect if not logged in
   useEffect(() => {
     if (!loading && !user) {
       router.push('/signin')
     }
   }, [user, loading, router])
 
-  // Search products
   useEffect(() => {
     const searchProducts = async () => {
       if (searchQuery.length < 2) {
@@ -41,16 +38,20 @@ export default function SellPage() {
         return
       }
 
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('products')
         .select(`
           *,
           brand:brands(*),
-          sizes:product_sizes(*)
+          sizes:product_sizes(*),
+          images:product_images(*)
         `)
         .or(`name.ilike.%${searchQuery}%,sku.ilike.%${searchQuery}%`)
         .limit(10)
 
+      if (error) {
+        console.error('Search error:', error)
+      }
       setProducts(data || [])
     }
 
@@ -65,7 +66,6 @@ export default function SellPage() {
     setStep(2)
   }
 
-  // Image upload handler
   const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files)
     if (files.length === 0) return
@@ -100,7 +100,6 @@ export default function SellPage() {
     setUploading(false)
   }
 
-  // Remove image
   const removeImage = async (index) => {
     const image = images[index]
     
@@ -116,9 +115,8 @@ export default function SellPage() {
     setSubmitting(true)
 
     console.log('User ID:', user.id)
-    console.log('User object:', user)
+    console.log('User:', user)
 
-    // Create the listing
     const { data: listing, error } = await supabase
       .from('listings')
       .insert({
@@ -141,7 +139,6 @@ export default function SellPage() {
       return
     }
 
-    // Save images to listing_images table
     if (images.length > 0) {
       const imageRecords = images.map((img, index) => ({
         listing_id: listing.id,
@@ -186,7 +183,7 @@ export default function SellPage() {
             <h1 className="font-serif text-3xl mb-4">Listing Submitted</h1>
             <p className="text-warm-gray mb-8">
               Your {selectedProduct.brand?.name} {selectedProduct.name} has been submitted for review. 
-              We'll notify you once it's been authenticated and listed.
+              We&apos;ll notify you once it&apos;s been authenticated and listed.
             </p>
             <div className="flex gap-4 justify-center">
               <button 
@@ -225,7 +222,6 @@ export default function SellPage() {
         <h1 className="font-serif text-4xl mb-2">Sell an Item</h1>
         <p className="text-warm-gray mb-10">List a piece from your collection</p>
 
-        {/* Progress Steps */}
         <div className="flex items-center gap-4 mb-12">
           {[1, 2, 3].map((s) => (
             <div key={s} className="flex items-center gap-4">
@@ -239,7 +235,6 @@ export default function SellPage() {
           ))}
         </div>
 
-        {/* Step 1: Select Product */}
         {step === 1 && (
           <div className="bg-white border border-light-gray p-8">
             <h2 className="font-serif text-2xl mb-6">What are you selling?</h2>
@@ -260,7 +255,11 @@ export default function SellPage() {
                       onClick={() => handleSelectProduct(product)}
                       className="w-full px-4 py-4 flex items-center gap-4 hover:bg-cream transition-colors text-left"
                     >
-                      <div className="w-16 h-20 bg-light-gray"></div>
+                      <div className="w-16 h-20 bg-light-gray overflow-hidden">
+                        {product.images?.[0] && (
+                          <img src={product.images[0].url} alt="" className="w-full h-full object-cover" />
+                        )}
+                      </div>
                       <div>
                         <p className="text-xs text-warm-gray tracking-wide uppercase">{product.brand?.name}</p>
                         <p className="font-medium">{product.name}</p>
@@ -273,17 +272,19 @@ export default function SellPage() {
             </div>
             
             <p className="text-sm text-warm-gray mt-4">
-              Can't find your item? <Link href="/contact" className="underline">Contact us</Link> to add it.
+              Can&apos;t find your item? <Link href="/contact" className="underline">Contact us</Link> to add it.
             </p>
           </div>
         )}
 
-        {/* Step 2: Details & Photos */}
         {step === 2 && selectedProduct && (
           <div className="bg-white border border-light-gray p-8">
-            {/* Selected Product */}
             <div className="flex items-center gap-4 pb-6 mb-6 border-b border-light-gray">
-              <div className="w-20 h-24 bg-light-gray"></div>
+              <div className="w-20 h-24 bg-light-gray overflow-hidden">
+                {selectedProduct.images?.[0] && (
+                  <img src={selectedProduct.images[0].url} alt="" className="w-full h-full object-cover" />
+                )}
+              </div>
               <div>
                 <p className="text-xs text-warm-gray tracking-wide uppercase">{selectedProduct.brand?.name}</p>
                 <p className="font-serif text-xl">{selectedProduct.name}</p>
@@ -298,7 +299,6 @@ export default function SellPage() {
 
             <h2 className="font-serif text-2xl mb-6">Item Details</h2>
             
-            {/* Size */}
             <div className="mb-6">
               <label className="block text-xs tracking-wide uppercase text-warm-gray mb-3">Size</label>
               <div className="flex gap-2 flex-wrap">
@@ -319,7 +319,6 @@ export default function SellPage() {
               </div>
             </div>
 
-            {/* Condition */}
             <div className="mb-6">
               <label className="block text-xs tracking-wide uppercase text-warm-gray mb-3">Condition</label>
               <div className="grid grid-cols-2 gap-3">
@@ -346,7 +345,6 @@ export default function SellPage() {
               </div>
             </div>
 
-            {/* Condition Notes */}
             <div className="mb-6">
               <label className="block text-xs tracking-wide uppercase text-warm-gray mb-2">
                 Condition Notes (Optional)
@@ -360,7 +358,6 @@ export default function SellPage() {
               />
             </div>
 
-            {/* Photo Upload */}
             <div className="mb-8">
               <label className="block text-xs tracking-wide uppercase text-warm-gray mb-3">
                 Photos ({images.length}/6)
@@ -426,10 +423,8 @@ export default function SellPage() {
           </div>
         )}
 
-        {/* Step 3: Pricing */}
         {step === 3 && selectedProduct && (
           <form onSubmit={handleSubmit} className="bg-white border border-light-gray p-8">
-            {/* Selected Product with Image */}
             <div className="flex items-center gap-4 pb-6 mb-6 border-b border-light-gray">
               <div className="w-20 h-24 bg-light-gray overflow-hidden">
                 {images[0] && (
@@ -445,7 +440,6 @@ export default function SellPage() {
 
             <h2 className="font-serif text-2xl mb-6">Set Your Price</h2>
 
-            {/* Price Input */}
             <div className="mb-6">
               <label className="block text-xs tracking-wide uppercase text-warm-gray mb-2">
                 Your Price
@@ -464,7 +458,6 @@ export default function SellPage() {
               </div>
             </div>
 
-            {/* Price Comparison */}
             <div className="bg-cream p-4 mb-8">
               <div className="flex justify-between text-sm mb-2">
                 <span className="text-warm-gray">Retail Price</span>
