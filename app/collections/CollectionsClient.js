@@ -13,10 +13,13 @@ const SIZES = [
   { label: 'XXL', value: '56' },
 ]
 
+const ITEMS_PER_PAGE = 12
+
 export default function CollectionsClient({ products, categories }) {
   const [selectedGender, setSelectedGender] = useState(null)
   const [selectedSize, setSelectedSize] = useState(null)
   const [selectedCategory, setSelectedCategory] = useState(null)
+  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE)
 
   // Filter products
   let filteredProducts = products.filter(product => {
@@ -30,111 +33,123 @@ export default function CollectionsClient({ products, categories }) {
     return (b.current_price || b.retail_price) - (a.current_price || a.retail_price)
   })
 
+  const visibleProducts = filteredProducts.slice(0, visibleCount)
+  const hasMore = visibleCount < filteredProducts.length
+
   const clearFilters = () => {
     setSelectedGender(null)
     setSelectedSize(null)
     setSelectedCategory(null)
+    setVisibleCount(ITEMS_PER_PAGE)
+  }
+
+  const loadMore = () => {
+    setVisibleCount(prev => prev + ITEMS_PER_PAGE)
   }
 
   const hasFilters = selectedGender || selectedSize || selectedCategory
 
   return (
-    <section className="px-12 pb-20">
-      <div className="max-w-7xl mx-auto flex gap-12">
-        
-        {/* Filters Sidebar */}
-        <div className="w-48 flex-shrink-0">
-          
-          {/* Gender */}
-          <div className="mb-8">
-            <h3 className="text-xs tracking-[2px] uppercase text-warm-gray mb-4">Gender</h3>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setSelectedGender(selectedGender === 'M' ? null : 'M')}
-                className={`px-4 py-2 text-xs tracking-wide border transition-all ${
-                  selectedGender === 'M' 
-                    ? 'bg-charcoal text-white border-charcoal' 
-                    : 'border-light-gray hover:border-charcoal'
-                }`}
-              >
-                Men
-              </button>
-              <button
-                onClick={() => setSelectedGender(selectedGender === 'W' ? null : 'W')}
-                className={`px-4 py-2 text-xs tracking-wide border transition-all ${
-                  selectedGender === 'W' 
-                    ? 'bg-charcoal text-white border-charcoal' 
-                    : 'border-light-gray hover:border-charcoal'
-                }`}
-              >
-                Women
-              </button>
-            </div>
-          </div>
+    <>
+      {/* Secondary Filter Header */}
+      <div className="sticky top-[73px] z-40 bg-cream/95 backdrop-blur-md border-b border-light-gray">
+        <div className="max-w-7xl mx-auto px-12 py-4">
+          <div className="flex items-center justify-between gap-8">
+            
+            {/* Left: Filters */}
+            <div className="flex items-center gap-6">
+              
+              {/* Gender */}
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] tracking-[2px] uppercase text-warm-gray">Gender</span>
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => setSelectedGender(selectedGender === 'M' ? null : 'M')}
+                    className={`px-3 py-1.5 text-[10px] tracking-wide border transition-all ${
+                      selectedGender === 'M' 
+                        ? 'bg-charcoal text-white border-charcoal' 
+                        : 'border-light-gray hover:border-charcoal'
+                    }`}
+                  >
+                    Men
+                  </button>
+                  <button
+                    onClick={() => setSelectedGender(selectedGender === 'W' ? null : 'W')}
+                    className={`px-3 py-1.5 text-[10px] tracking-wide border transition-all ${
+                      selectedGender === 'W' 
+                        ? 'bg-charcoal text-white border-charcoal' 
+                        : 'border-light-gray hover:border-charcoal'
+                    }`}
+                  >
+                    Women
+                  </button>
+                </div>
+              </div>
 
-          {/* Size */}
-          <div className="mb-8">
-            <h3 className="text-xs tracking-[2px] uppercase text-warm-gray mb-4">Size</h3>
-            <div className="flex flex-wrap gap-2">
-              {SIZES.map(size => (
-                <button
-                  key={size.value}
-                  onClick={() => setSelectedSize(selectedSize === size.value ? null : size.value)}
-                  className={`w-10 h-10 text-xs border transition-all ${
-                    selectedSize === size.value 
-                      ? 'bg-charcoal text-white border-charcoal' 
-                      : 'border-light-gray hover:border-charcoal'
-                  }`}
-                  title={`${size.label} (${size.value})`}
+              <div className="w-px h-6 bg-light-gray" />
+
+              {/* Size */}
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] tracking-[2px] uppercase text-warm-gray">Size</span>
+                <div className="flex gap-1">
+                  {SIZES.map(size => (
+                    <button
+                      key={size.value}
+                      onClick={() => setSelectedSize(selectedSize === size.value ? null : size.value)}
+                      className={`w-8 h-8 text-[10px] border transition-all ${
+                        selectedSize === size.value 
+                          ? 'bg-charcoal text-white border-charcoal' 
+                          : 'border-light-gray hover:border-charcoal'
+                      }`}
+                      title={`${size.label} (${size.value})`}
+                    >
+                      {size.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="w-px h-6 bg-light-gray" />
+
+              {/* Category Dropdown */}
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] tracking-[2px] uppercase text-warm-gray">Category</span>
+                <select
+                  value={selectedCategory || ''}
+                  onChange={(e) => setSelectedCategory(e.target.value || null)}
+                  className="px-3 py-1.5 text-[10px] tracking-wide border border-light-gray bg-transparent focus:border-charcoal outline-none min-w-[120px]"
                 >
-                  {size.label}
-                </button>
-              ))}
+                  <option value="">All</option>
+                  {categories.map(cat => (
+                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                  ))}
+                </select>
+              </div>
             </div>
-          </div>
 
-          {/* Category */}
-          <div className="mb-8">
-            <h3 className="text-xs tracking-[2px] uppercase text-warm-gray mb-4">Category</h3>
-            <div className="flex flex-col gap-2">
-              {categories.map(cat => (
+            {/* Right: Count & Clear */}
+            <div className="flex items-center gap-4">
+              <span className="text-[10px] tracking-[2px] uppercase text-warm-gray">
+                {filteredProducts.length} pieces
+              </span>
+              {hasFilters && (
                 <button
-                  key={cat.id}
-                  onClick={() => setSelectedCategory(selectedCategory === cat.id ? null : cat.id)}
-                  className={`px-3 py-2 text-xs text-left tracking-wide border transition-all ${
-                    selectedCategory === cat.id 
-                      ? 'bg-charcoal text-white border-charcoal' 
-                      : 'border-light-gray hover:border-charcoal'
-                  }`}
+                  onClick={clearFilters}
+                  className="text-[10px] tracking-wide text-warm-gray underline hover:text-charcoal"
                 >
-                  {cat.name}
+                  Clear
                 </button>
-              ))}
+              )}
             </div>
           </div>
-
-          {/* Clear Filters */}
-          {hasFilters && (
-            <button
-              onClick={clearFilters}
-              className="text-xs text-warm-gray underline hover:text-charcoal"
-            >
-              Clear all filters
-            </button>
-          )}
         </div>
+      </div>
 
-        {/* Products Grid */}
-        <div className="flex-1">
-          
-          {/* Count */}
-          <div className="mb-8">
-            <p className="text-sm text-warm-gray">{filteredProducts.length} products</p>
-          </div>
-
-          {/* Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredProducts.map((product) => {
+      {/* Products Grid */}
+      <section className="px-12 py-12">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            {visibleProducts.map((product) => {
               const primaryImage = product.images?.find(img => img.is_primary) || product.images?.[0]
               const price = product.current_price || product.retail_price
               const isOnSale = product.current_price && product.current_price < product.retail_price
@@ -157,12 +172,12 @@ export default function CollectionsClient({ products, categories }) {
                   <p className="text-xs tracking-[2px] uppercase text-warm-gray mb-2">
                     {product.brand?.name}
                   </p>
-                  <h3 className="font-serif text-xl mb-2">{product.name}</h3>
+                  <h3 className="font-serif text-lg mb-2">{product.name}</h3>
                   <div className="flex items-center gap-2">
                     {isOnSale && (
-                      <span className="text-warm-gray line-through">${product.retail_price?.toLocaleString()}</span>
+                      <span className="text-warm-gray line-through text-sm">${product.retail_price?.toLocaleString()}</span>
                     )}
-                    <span className={isOnSale ? 'text-red-600' : 'text-charcoal'}>
+                    <span className={`${isOnSale ? 'text-red-600' : 'text-charcoal'}`}>
                       ${price?.toLocaleString()}
                     </span>
                   </div>
@@ -171,19 +186,36 @@ export default function CollectionsClient({ products, categories }) {
             })}
           </div>
 
+          {/* Load More / Pagination */}
+          {hasMore && (
+            <div className="mt-16 text-center">
+              <div className="mb-4">
+                <span className="text-sm text-warm-gray">
+                  Showing {visibleCount} of {filteredProducts.length}
+                </span>
+              </div>
+              <button
+                onClick={loadMore}
+                className="px-12 py-4 border border-charcoal text-xs tracking-[2px] uppercase hover:bg-charcoal hover:text-white transition-all"
+              >
+                Load More
+              </button>
+            </div>
+          )}
+
           {filteredProducts.length === 0 && (
             <div className="text-center py-20">
-              <p className="text-warm-gray">No products match your filters</p>
+              <p className="text-warm-gray mb-4">No products match your filters</p>
               <button
                 onClick={clearFilters}
-                className="mt-4 text-sm underline hover:no-underline"
+                className="text-sm underline hover:no-underline"
               >
                 Clear filters
               </button>
             </div>
           )}
         </div>
-      </div>
-    </section>
+      </section>
+    </>
   )
 }

@@ -13,7 +13,7 @@ async function getProducts() {
       brand:brands(*),
       images:product_images(*)
     `)
-    .order('retail_price', { ascending: true })
+    .order('retail_price', { ascending: false })
 
   if (error) {
     console.error('Error fetching products:', error)
@@ -45,8 +45,7 @@ export default async function CollectionsPage() {
 
       <section className="pt-32 pb-8 px-12">
         <div className="max-w-7xl mx-auto">
-          <h1 className="font-serif text-5xl font-light mb-4">Collections</h1>
-          <p className="text-warm-gray text-lg">{products.length} pieces from the world&apos;s finest houses</p>
+          <h1 className="font-serif text-5xl font-light mb-2">Collections</h1>
         </div>
       </section>
 
